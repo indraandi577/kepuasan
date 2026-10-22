@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Survei Kepuasan Pelanggan</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="bg-slate-50 min-h-screen text-slate-800 font-sans">
+
+  <!-- Header & Tab Switcher -->
+  <!-- Modal Login Admin -->
+  <div id="adminLoginModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 backdrop-blur-sm">
+    <div class="bg-white rounded-2xl shadow-xl p-8 w-full max-w-sm mx-4">
+      <div class="text-center mb-6">
+        <span class="text-4xl">🔐</span>
+        <h2 class="text-xl font-bold text-slate-800 mt-2">Login Admin</h2>
+        <p class="text-slate-500 text-sm mt-1">Masukkan password untuk melanjutkan</p>
+      </div>
+      <div class="space-y-4">
+        <input
+          id="adminPasswordInput"
+          type="password"
+          placeholder="Password"
+          onkeydown="if(event.key==='Enter') checkAdminPassword()"
+          class="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition"
+        />
+        <p id="loginError" class="text-rose-500 text-xs text-center hidden">Password salah. Coba lagi.</p>
+        <button onclick="checkAdminPassword()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 rounded-xl transition">
+          Masuk
+        </button>
+        <button onclick="closeAdminLogin()" class="w-full text-slate-500 hover:text-slate-700 text-sm font-medium transition">
+          Batal
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <header class="bg-white border-b border-slate-200 sticky top-0 z-10">
+    <div class="max-w-3xl mx-auto px-4 py-3 flex justify-between items-center">
+      <!-- Logo — klik 5x cepat untuk buka login admin (trik tersembunyi) -->
+      <div class="flex items-center gap-2 select-none" id="logoArea">
+        <span class="text-2xl">🔥</span>
+        <h1 class="font-bold text-lg text-slate-800">Feedback Pelanggan</h1>
+      </div>
+      <div class="flex gap-2">
+        <button id="tabForm" onclick="switchTab('form')" class="px-4 py-1.5 rounded-full text-sm font-medium bg-indigo-600 text-white transition">Form Survei</button>
+        <!-- Tombol admin disembunyikan, hanya muncul setelah login -->
+        <button id="tabAdmin" onclick="switchTab('admin')" class="hidden px-4 py-1.5 rounded-full text-sm font-medium bg-slate-100 text-slate-600 hover:bg-slate-200 transition">Dashboard Admin</button>
+        <button id="logoutBtn" onclick="logoutAdmin()" class="hidden px-4 py-1.5 rounded-full text-sm font-medium bg-rose-100 text-rose-600 hover:bg-rose-200 transition">Keluar</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-xl mx-auto px-4 py-8">
+
+    <!-- VIEW 1: FORM SURVEI -->
+    <div id="surveyView" class="block">
+      <div class="bg-white p-6 sm:p-8 rounded-2xl shadow-sm border border-slate-100">
+        <div class="text-center mb-8">
+          <h2 class="text-2xl font-bold text-slate-900 mb-2">Bagaimana Pengalaman Anda?</h2>
+          <p class="text-slate-500 text-sm">Masukan Anda sangat berharga bagi kami. Pengisian ini bersifat anonim.</p>
+        </div>
+
+        <form id="feedbackForm" onsubmit="submitFeedback(event)" class="space-y-8">
+          <div>
+            <label class="block font-semibold text-center text-slate-800 mb-4">
+              1. Bagaimana tingkat kepuasan Anda? <span class="text-rose-500">*</span>
+            </label>
+            
+            <div class="grid grid-cols-5 gap-2">
+              <button type="button" onclick="selectCsat(1)" class="csat-btn border-2 border-slate-200 rounded-xl p-3 text-center transition hover:border-indigo-400 focus:outline-none" data-score="1">
+                <span class="text-3xl sm:text-4xl block mb-1">😡</span>
+                <span class="text-xs font-medium text-slate-500">Sangat Kecewa</span>
+              </button>
+              <button type="button" onclick="selectCsat(2)" class="csat-btn border-2 border-slate-200 rounded-xl p-3 text-center transition hover:border-indigo-400 focus:outline-none" data-score="2">
+                <span class="text-3xl sm:text-4xl block mb-1">🙁</span>
+                <span class="text-xs font-medium text-slate-500">Kecewa</span>
+              </button>
+              <button type="button" onclick="selectCsat(3)" class="csat-btn border-2 border-slate-200 rounded-xl p-3 text-center transition hover:border-indigo-400 focus:outline-none" data-score="3">
+                <span class="text-3xl sm:text-4xl block mb-1">😐</span>
+                <span class="text-xs font-medium text-slate-500">Biasa Aja</span>
+              </button>
+              <button type="button" onclick="selectCsat(4)" class="csat-btn border-2 border-slate-200 rounded-xl p-3 text-center transition hover:border-indigo-400 focus:outline-none" data-score="4">
+                <span class="text-3xl sm:text-4xl block mb-1">🙂</span>
+                <span class="text-xs font-medium text-slate-500">Puas</span>
+              </button>
+              <button type="button" onclick="selectCsat(5)" class="csat-btn border-2 border-slate-200 rounded-xl p-3 text-center transition hover:border-indigo-400 focus:outline-none" data-score="5">
+                <span class="text-3xl sm:text-4xl block mb-1">😍</span>
+                <span class="text-xs font-medium text-slate-500">Sangat Puas</span>
+              </button>
+            </div>
+            <input type="hidden" id="selectedCsat" required>
+            <p id="csatError" class="text-rose-500 text-xs text-center mt-2 hidden">Pilih salah satu tingkat kepuasan terlebih dahulu!</p>
+          </div>
+
+          <div>
+            <label for="comment" class="block font-semibold text-slate-800 mb-2">
+              2. Ada saran atau masukan untuk kami? <span class="text-slate-400 text-xs font-normal">(Opsional)</span>
+            </label>
+            <textarea id="comment" rows="3" class="w-full border border-slate-200 rounded-xl p-3 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition" placeholder="Tulis masukan Anda di sini..."></textarea>
+          </div>
+
+          <button id="submitBtn" type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3.5 px-4 rounded-xl shadow-md transition duration-200 transform active:scale-95">
+            Kirim Feedback
+          </button>
+        </form>
+
+        <div id="successMsg" class="hidden text-center py-8 space-y-4">
+          <div class="text-5xl">🎉</div>
+          <h3 class="text-2xl font-bold text-slate-800">Terima Kasih!</h3>
+          <p class="text-slate-600 text-sm">Feedback Anda telah berhasil dikirim dan tersimpan di database.</p>
+          <button onclick="resetForm()" class="inline-block mt-4 text-sm font-semibold text-indigo-600 hover:underline">Kirim feedback lain</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- VIEW 2: DASHBOARD ADMIN -->
+    <div id="adminView" class="hidden space-y-6">
+      <div class="grid grid-cols-2 gap-4">
+        <div class="bg-white p-5 rounded-xl border border-slate-100 shadow-sm">
+          <p class="text-xs font-medium text-slate-400 uppercase">Total Responden</p>
+          <p id="statTotal" class="text-3xl font-bold text-slate-800 mt-1">0</p>
+        </div>
+        <div class="bg-white p-5 rounded-xl border border-slate-100 shadow-sm">
+          <p class="text-xs font-medium text-slate-400 uppercase">Rata-rata Skor (out of 5)</p>
+          <p id="statAvg" class="text-3xl font-bold text-indigo-600 mt-1">0.0</p>
+        </div>
+      </div>
+
+      <div class="bg-white p-5 rounded-xl border border-slate-100 shadow-sm">
+        <h3 class="font-bold text-slate-800 mb-4">Distribusi Kepuasan</h3>
+        <canvas id="csatChart" class="max-h-56"></canvas>
+      </div>
+
+      <div class="bg-white rounded-xl border border-slate-100 shadow-sm overflow-hidden">
+        <div class="p-4 border-b border-slate-100 flex justify-between items-center">
+          <h3 class="font-bold text-slate-800">Riwayat Feedback (Realtime)</h3>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-sm">
+            <thead class="bg-slate-50 text-slate-500">
+              <tr>
+                <th class="p-3">Waktu</th>
+                <th class="p-3">Skor</th>
+                <th class="p-3">Saran</th>
+              </tr>
+            </thead>
+            <tbody id="historyTable" class="divide-y divide-slate-100">
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- ======================================================
+       KONFIGURASI ADMIN
+       Ganti nilai ADMIN_PASSWORD di bawah sesuai kebutuhan.
+       ====================================================== -->
+  <script>
+    const ADMIN_PASSWORD = "besoklebihbaik";
+
+    let isAdminLoggedIn = false;
+    let logoClickCount = 0;
+    let logoClickTimer = null;
+
+    // Cek URL param ?admin saat halaman load
+    window.addEventListener('DOMContentLoaded', () => {
+      const params = new URLSearchParams(window.location.search);
+      if (params.has('admin')) openAdminLogin();
+
+      // Klik logo 5x cepat untuk buka login admin (tersembunyi dari customer)
+      document.getElementById('logoArea').addEventListener('click', () => {
+        logoClickCount++;
+        clearTimeout(logoClickTimer);
+        logoClickTimer = setTimeout(() => { logoClickCount = 0; }, 1500);
+        if (logoClickCount >= 5) {
+          logoClickCount = 0;
+          openAdminLogin();
+        }
+      });
+    });
+
+    function openAdminLogin() {
+      const modal = document.getElementById('adminLoginModal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+      document.getElementById('adminPasswordInput').value = '';
+      document.getElementById('loginError').classList.add('hidden');
+      setTimeout(() => document.getElementById('adminPasswordInput').focus(), 100);
+    }
+
+    function closeAdminLogin() {
+      const modal = document.getElementById('adminLoginModal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+      // Bersihkan ?admin dari URL tanpa reload
+      const url = new URL(window.location);
+      url.searchParams.delete('admin');
+      window.history.replaceState({}, '', url);
+    }
+
+    function checkAdminPassword() {
+      const input = document.getElementById('adminPasswordInput').value;
+      if (input === ADMIN_PASSWORD) {
+        isAdminLoggedIn = true;
+        closeAdminLogin();
+        // Tampilkan tombol admin & logout
+        document.getElementById('tabAdmin').classList.remove('hidden');
+        document.getElementById('logoutBtn').classList.remove('hidden');
+        // Langsung buka dashboard admin
+        window.switchTab('admin');
+      } else {
+        document.getElementById('loginError').classList.remove('hidden');
+        document.getElementById('adminPasswordInput').value = '';
+        document.getElementById('adminPasswordInput').focus();
+      }
+    }
+
+    function logoutAdmin() {
+      isAdminLoggedIn = false;
+      document.getElementById('tabAdmin').classList.add('hidden');
+      document.getElementById('logoutBtn').classList.add('hidden');
+      window.switchTab('form');
+    }
+  </script>
+
+  <!-- FIREBASE REALTIME DATABASE MODULE SDK -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getDatabase, ref, push, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+    // KELOLA FIREBASE CONFIG MILIKMU
+    const firebaseConfig = {
+      apiKey: "AIzaSyCJsY4F50qELAnHDLw-mUWMAYJt2Ua8dNw",
+      authDomain: "kepuasan-1c7ad.firebaseapp.com",
+      databaseURL: "https://kepuasan-1c7ad-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "kepuasan-1c7ad",
+      storageBucket: "kepuasan-1c7ad.firebasestorage.app",
+      messagingSenderId: "284678078395",
+      appId: "1:284678078395:web:d2f69b07d18654ad948e9e",
+      measurementId: "G-CMXM5B4HRT"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+    const feedbacksRef = ref(db, 'feedbacks');
+
+    let selectedScore = null;
+    let chartInstance = null;
+
+    window.selectCsat = function(score) {
+      selectedScore = score;
+      document.getElementById('selectedCsat').value = score;
+      document.getElementById('csatError').classList.add('hidden');
+
+      document.querySelectorAll('.csat-btn').forEach(btn => {
+        if (parseInt(btn.dataset.score) === score) {
+          btn.classList.add('border-indigo-600', 'bg-indigo-50', 'ring-2', 'ring-indigo-200');
+          btn.classList.remove('border-slate-200');
+        } else {
+          btn.classList.remove('border-indigo-600', 'bg-indigo-50', 'ring-2', 'ring-indigo-200');
+          btn.classList.add('border-slate-200');
+        }
+      });
+    };
+
+    window.submitFeedback = async function(e) {
+      e.preventDefault();
+      if (!selectedScore) {
+        document.getElementById('csatError').classList.remove('hidden');
+        return;
+      }
+
+      const btn = document.getElementById('submitBtn');
+      btn.disabled = true;
+      btn.innerText = 'Mengirim...';
+
+      try {
+        await push(feedbacksRef, {
+          score: selectedScore,
+          comment: document.getElementById('comment').value.trim() || '-',
+          created_at: new Date().toISOString()
+        });
+
+        document.getElementById('feedbackForm').classList.add('hidden');
+        document.getElementById('successMsg').classList.remove('hidden');
+      } catch (err) {
+        alert('Gagal mengirim data: ' + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.innerText = 'Kirim Feedback';
+      }
+    };
+
+    window.resetForm = function() {
+      selectedScore = null;
+      document.getElementById('selectedCsat').value = '';
+      document.getElementById('comment').value = '';
+      document.querySelectorAll('.csat-btn').forEach(btn => {
+        btn.classList.remove('border-indigo-600', 'bg-indigo-50', 'ring-2', 'ring-indigo-200');
+        btn.classList.add('border-slate-200');
+      });
+      document.getElementById('feedbackForm').classList.remove('hidden');
+      document.getElementById('successMsg').classList.add('hidden');
+    };
+
+    window.switchTab = function(tab) {
+      // Guard: kalau belum login dan coba akses admin, tampilkan modal login
+      if (tab === 'admin' && !isAdminLoggedIn) {
+        openAdminLogin();
+        return;
+      }
+
+      const formBtn = document.getElementById('tabForm');
+      const adminBtn = document.getElementById('tabAdmin');
+      const surveyView = document.getElementById('surveyView');
+      const adminView = document.getElementById('adminView');
+
+      if (tab === 'form') {
+        surveyView.classList.remove('hidden');
+        adminView.classList.add('hidden');
+        formBtn.className = "px-4 py-1.5 rounded-full text-sm font-medium bg-indigo-600 text-white transition";
+        adminBtn.className = "hidden px-4 py-1.5 rounded-full text-sm font-medium bg-slate-100 text-slate-600 hover:bg-slate-200 transition";
+      } else {
+        surveyView.classList.add('hidden');
+        adminView.classList.remove('hidden');
+        adminBtn.className = "px-4 py-1.5 rounded-full text-sm font-medium bg-indigo-600 text-white transition";
+        formBtn.className = "px-4 py-1.5 rounded-full text-sm font-medium bg-slate-100 text-slate-600 hover:bg-slate-200 transition";
+      }
+    };
+
+    // Realtime Listener Data dari Firebase Realtime Database
+    onValue(feedbacksRef, (snapshot) => {
+      const rawData = snapshot.val();
+      const data = [];
+
+      if (rawData) {
+        Object.keys(rawData).forEach(key => {
+          data.push({ id: key, ...rawData[key] });
+        });
+      }
+
+      // Sort data terbaru di paling atas
+      data.reverse();
+
+      // Update KPIs
+      document.getElementById('statTotal').innerText = data.length;
+      if (data.length > 0) {
+        const sum = data.reduce((acc, curr) => acc + (curr.score || 0), 0);
+        document.getElementById('statAvg').innerText = (sum / data.length).toFixed(1);
+      } else {
+        document.getElementById('statAvg').innerText = '0.0';
+      }
+
+      // Update Tabel
+      const tbody = document.getElementById('historyTable');
+      tbody.innerHTML = '';
+      const emojis = ['', '😡', '🙁', '😐', '🙂', '😍'];
+
+      data.forEach(item => {
+        const tr = document.createElement('tr');
+        const dateStr = item.created_at ? new Date(item.created_at).toLocaleString('id-ID') : '-';
+        tr.innerHTML = `
+          <td class="p-3 text-slate-500 whitespace-nowrap">${dateStr}</td>
+          <td class="p-3 font-semibold">${emojis[item.score] || ''} (${item.score}/5)</td>
+          <td class="p-3 text-slate-700">${item.comment}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      // Update Chart
+      const counts = [0, 0, 0, 0, 0];
+      data.forEach(item => {
+        if (item.score >= 1 && item.score <= 5) counts[item.score - 1]++;
+      });
+
+      const ctx = document.getElementById('csatChart').getContext('2d');
+      if (chartInstance) chartInstance.destroy();
+
+      chartInstance = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: ['😡 1', '🙁 2', '😐 3', '🙂 4', '😍 5'],
+          datasets: [{
+            label: 'Jumlah Responden',
+            data: counts,
+            backgroundColor: ['#ef4444', '#f97316', '#f59e0b', '#84cc16', '#22c55e'],
+            borderRadius: 8
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: { legend: { display: false } },
+          scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
+        }
+      });
+    });
+  </script>
+</body>
+</html>
