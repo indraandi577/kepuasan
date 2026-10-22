@@ -6,13 +6,27 @@
   <title>Survei Kepuasan Pelanggan</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    /* Fallback styles — bekerja bahkan tanpa Tailwind */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      background: rgba(0,0,0,0.55);
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+    }
+    .modal-overlay.active { display: flex; }
+    [data-hide] { display: none !important; }
+  </style>
 </head>
 <body class="bg-slate-50 min-h-screen text-slate-800 font-sans">
 
-  <!-- Header & Tab Switcher -->
-  <!-- Modal Login Admin -->
-  <div id="adminLoginModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 backdrop-blur-sm">
-    <div class="bg-white rounded-2xl shadow-xl p-8 w-full max-w-sm mx-4">
+  <!-- ===== MODAL LOGIN ADMIN ===== -->
+  <div id="adminLoginModal" class="modal-overlay">
+    <div class="bg-white rounded-2xl shadow-xl p-8 w-full max-w-sm">
       <div class="text-center mb-6">
         <span class="text-4xl">🔐</span>
         <h2 class="text-xl font-bold text-slate-800 mt-2">Login Admin</h2>
@@ -25,30 +39,46 @@
           placeholder="Password"
           onkeydown="if(event.key==='Enter') checkAdminPassword()"
           class="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition"
+          style="width:100%;padding:0.75rem 1rem;border:1px solid #e2e8f0;border-radius:0.75rem;font-size:0.875rem;box-sizing:border-box;"
         />
-        <p id="loginError" class="text-rose-500 text-xs text-center hidden">Password salah. Coba lagi.</p>
-        <button onclick="checkAdminPassword()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 rounded-xl transition">
+        <p id="loginError" style="display:none;color:#ef4444;font-size:0.75rem;text-align:center;">Password salah. Coba lagi.</p>
+        <button onclick="checkAdminPassword()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 rounded-xl transition"
+          style="width:100%;background:#4f46e5;color:#fff;font-weight:600;padding:0.75rem;border-radius:0.75rem;border:none;cursor:pointer;">
           Masuk
         </button>
-        <button onclick="closeAdminLogin()" class="w-full text-slate-500 hover:text-slate-700 text-sm font-medium transition">
+        <button onclick="closeAdminLogin()" class="w-full text-slate-500 text-sm font-medium transition"
+          style="width:100%;background:none;border:none;color:#64748b;font-size:0.875rem;cursor:pointer;padding:0.5rem;">
           Batal
         </button>
       </div>
     </div>
   </div>
 
+  <!-- ===== HEADER ===== -->
   <header class="bg-white border-b border-slate-200 sticky top-0 z-10">
     <div class="max-w-3xl mx-auto px-4 py-3 flex justify-between items-center">
-      <!-- Logo — klik 5x cepat untuk buka login admin (trik tersembunyi) -->
-      <div class="flex items-center gap-2 select-none" id="logoArea">
+      <!-- Klik logo 5x cepat untuk buka login admin -->
+      <div class="flex items-center gap-2 select-none cursor-pointer" id="logoArea">
         <span class="text-2xl">🔥</span>
         <h1 class="font-bold text-lg text-slate-800">Feedback Pelanggan</h1>
       </div>
       <div class="flex gap-2">
-        <button id="tabForm" onclick="switchTab('form')" class="px-4 py-1.5 rounded-full text-sm font-medium bg-indigo-600 text-white transition">Form Survei</button>
-        <!-- Tombol admin disembunyikan, hanya muncul setelah login -->
-        <button id="tabAdmin" onclick="switchTab('admin')" class="hidden px-4 py-1.5 rounded-full text-sm font-medium bg-slate-100 text-slate-600 hover:bg-slate-200 transition">Dashboard Admin</button>
-        <button id="logoutBtn" onclick="logoutAdmin()" class="hidden px-4 py-1.5 rounded-full text-sm font-medium bg-rose-100 text-rose-600 hover:bg-rose-200 transition">Keluar</button>
+        <button id="tabForm" onclick="switchTab('form')"
+          class="px-4 py-1.5 rounded-full text-sm font-medium bg-indigo-600 text-white transition"
+          style="padding:0.375rem 1rem;border-radius:9999px;font-size:0.875rem;font-weight:500;border:none;cursor:pointer;background:#4f46e5;color:#fff;">
+          Form Survei
+        </button>
+        <!-- Tombol admin hanya muncul setelah login -->
+        <button id="tabAdmin" onclick="switchTab('admin')" data-hide
+          class="px-4 py-1.5 rounded-full text-sm font-medium bg-slate-100 text-slate-600 transition"
+          style="padding:0.375rem 1rem;border-radius:9999px;font-size:0.875rem;font-weight:500;border:none;cursor:pointer;">
+          Dashboard Admin
+        </button>
+        <button id="logoutBtn" onclick="logoutAdmin()" data-hide
+          class="px-4 py-1.5 rounded-full text-sm font-medium bg-rose-100 text-rose-600 transition"
+          style="padding:0.375rem 1rem;border-radius:9999px;font-size:0.875rem;font-weight:500;border:none;cursor:pointer;">
+          Keluar
+        </button>
       </div>
     </div>
   </header>
@@ -56,7 +86,7 @@
   <main class="max-w-xl mx-auto px-4 py-8">
 
     <!-- VIEW 1: FORM SURVEI -->
-    <div id="surveyView" class="block">
+    <div id="surveyView">
       <div class="bg-white p-6 sm:p-8 rounded-2xl shadow-sm border border-slate-100">
         <div class="text-center mb-8">
           <h2 class="text-2xl font-bold text-slate-900 mb-2">Bagaimana Pengalaman Anda?</h2>
@@ -68,7 +98,6 @@
             <label class="block font-semibold text-center text-slate-800 mb-4">
               1. Bagaimana tingkat kepuasan Anda? <span class="text-rose-500">*</span>
             </label>
-            
             <div class="grid grid-cols-5 gap-2">
               <button type="button" onclick="selectCsat(1)" class="csat-btn border-2 border-slate-200 rounded-xl p-3 text-center transition hover:border-indigo-400 focus:outline-none" data-score="1">
                 <span class="text-3xl sm:text-4xl block mb-1">😡</span>
@@ -92,32 +121,42 @@
               </button>
             </div>
             <input type="hidden" id="selectedCsat" required>
-            <p id="csatError" class="text-rose-500 text-xs text-center mt-2 hidden">Pilih salah satu tingkat kepuasan terlebih dahulu!</p>
+            <p id="csatError" style="display:none;color:#ef4444;font-size:0.75rem;text-align:center;margin-top:0.5rem;">
+              Pilih salah satu tingkat kepuasan terlebih dahulu!
+            </p>
           </div>
 
           <div>
             <label for="comment" class="block font-semibold text-slate-800 mb-2">
               2. Ada saran atau masukan untuk kami? <span class="text-slate-400 text-xs font-normal">(Opsional)</span>
             </label>
-            <textarea id="comment" rows="3" class="w-full border border-slate-200 rounded-xl p-3 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition" placeholder="Tulis masukan Anda di sini..."></textarea>
+            <textarea id="comment" rows="3"
+              class="w-full border border-slate-200 rounded-xl p-3 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition"
+              placeholder="Tulis masukan Anda di sini..."></textarea>
           </div>
 
-          <button id="submitBtn" type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3.5 px-4 rounded-xl shadow-md transition duration-200 transform active:scale-95">
+          <button id="submitBtn" type="submit"
+            class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3.5 px-4 rounded-xl shadow-md transition duration-200 transform active:scale-95"
+            style="width:100%;background:#4f46e5;color:#fff;font-weight:600;padding:0.875rem 1rem;border-radius:0.75rem;border:none;cursor:pointer;">
             Kirim Feedback
           </button>
         </form>
 
-        <div id="successMsg" class="hidden text-center py-8 space-y-4">
-          <div class="text-5xl">🎉</div>
-          <h3 class="text-2xl font-bold text-slate-800">Terima Kasih!</h3>
-          <p class="text-slate-600 text-sm">Feedback Anda telah berhasil dikirim dan tersimpan di database.</p>
-          <button onclick="resetForm()" class="inline-block mt-4 text-sm font-semibold text-indigo-600 hover:underline">Kirim feedback lain</button>
+        <div id="successMsg" style="display:none;text-align:center;padding:2rem 0;">
+          <div style="font-size:3rem;">🎉</div>
+          <h3 class="text-2xl font-bold text-slate-800" style="margin-top:0.5rem;">Terima Kasih!</h3>
+          <p class="text-slate-600 text-sm" style="margin-top:0.5rem;">Feedback Anda telah berhasil dikirim dan tersimpan di database.</p>
+          <button onclick="resetForm()"
+            class="inline-block mt-4 text-sm font-semibold text-indigo-600 hover:underline"
+            style="margin-top:1rem;background:none;border:none;color:#4f46e5;cursor:pointer;font-size:0.875rem;font-weight:600;">
+            Kirim feedback lain
+          </button>
         </div>
       </div>
     </div>
 
     <!-- VIEW 2: DASHBOARD ADMIN -->
-    <div id="adminView" class="hidden space-y-6">
+    <div id="adminView" style="display:none;" class="space-y-6">
       <div class="grid grid-cols-2 gap-4">
         <div class="bg-white p-5 rounded-xl border border-slate-100 shadow-sm">
           <p class="text-xs font-medium text-slate-400 uppercase">Total Responden</p>
@@ -135,7 +174,7 @@
       </div>
 
       <div class="bg-white rounded-xl border border-slate-100 shadow-sm overflow-hidden">
-        <div class="p-4 border-b border-slate-100 flex justify-between items-center">
+        <div class="p-4 border-b border-slate-100">
           <h3 class="font-bold text-slate-800">Riwayat Feedback (Realtime)</h3>
         </div>
         <div class="overflow-x-auto">
@@ -147,8 +186,7 @@
                 <th class="p-3">Saran</th>
               </tr>
             </thead>
-            <tbody id="historyTable" class="divide-y divide-slate-100">
-            </tbody>
+            <tbody id="historyTable" class="divide-y divide-slate-100"></tbody>
           </table>
         </div>
       </div>
@@ -157,8 +195,7 @@
   </main>
 
   <!-- ======================================================
-       KONFIGURASI ADMIN
-       Ganti nilai ADMIN_PASSWORD di bawah sesuai kebutuhan.
+       KONFIGURASI ADMIN — ganti password di sini
        ====================================================== -->
   <script>
     const ADMIN_PASSWORD = "besoklebihbaik";
@@ -167,12 +204,20 @@
     let logoClickCount = 0;
     let logoClickTimer = null;
 
-    // Cek URL param ?admin saat halaman load
-    window.addEventListener('DOMContentLoaded', () => {
-      const params = new URLSearchParams(window.location.search);
-      if (params.has('admin')) openAdminLogin();
+    function show(el) { el.style.display = ''; el.removeAttribute('data-hide'); }
+    function hide(el) { el.style.display = 'none'; }
 
-      // Klik logo 5x cepat untuk buka login admin (tersembunyi dari customer)
+    window.addEventListener('DOMContentLoaded', () => {
+      // Sembunyikan tombol admin & logout saat load
+      hide(document.getElementById('tabAdmin'));
+      hide(document.getElementById('logoutBtn'));
+
+      // Cek URL param ?admin
+      if (new URLSearchParams(window.location.search).has('admin')) {
+        openAdminLogin();
+      }
+
+      // Klik logo 5x cepat untuk buka login
       document.getElementById('logoArea').addEventListener('click', () => {
         logoClickCount++;
         clearTimeout(logoClickTimer);
@@ -186,18 +231,14 @@
 
     function openAdminLogin() {
       const modal = document.getElementById('adminLoginModal');
-      modal.classList.remove('hidden');
-      modal.classList.add('flex');
+      modal.classList.add('active');
       document.getElementById('adminPasswordInput').value = '';
-      document.getElementById('loginError').classList.add('hidden');
+      hide(document.getElementById('loginError'));
       setTimeout(() => document.getElementById('adminPasswordInput').focus(), 100);
     }
 
     function closeAdminLogin() {
-      const modal = document.getElementById('adminLoginModal');
-      modal.classList.add('hidden');
-      modal.classList.remove('flex');
-      // Bersihkan ?admin dari URL tanpa reload
+      document.getElementById('adminLoginModal').classList.remove('active');
       const url = new URL(window.location);
       url.searchParams.delete('admin');
       window.history.replaceState({}, '', url);
@@ -208,13 +249,11 @@
       if (input === ADMIN_PASSWORD) {
         isAdminLoggedIn = true;
         closeAdminLogin();
-        // Tampilkan tombol admin & logout
-        document.getElementById('tabAdmin').classList.remove('hidden');
-        document.getElementById('logoutBtn').classList.remove('hidden');
-        // Langsung buka dashboard admin
+        show(document.getElementById('tabAdmin'));
+        show(document.getElementById('logoutBtn'));
         window.switchTab('admin');
       } else {
-        document.getElementById('loginError').classList.remove('hidden');
+        show(document.getElementById('loginError'));
         document.getElementById('adminPasswordInput').value = '';
         document.getElementById('adminPasswordInput').focus();
       }
@@ -222,8 +261,8 @@
 
     function logoutAdmin() {
       isAdminLoggedIn = false;
-      document.getElementById('tabAdmin').classList.add('hidden');
-      document.getElementById('logoutBtn').classList.add('hidden');
+      hide(document.getElementById('tabAdmin'));
+      hide(document.getElementById('logoutBtn'));
       window.switchTab('form');
     }
   </script>
@@ -233,7 +272,6 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getDatabase, ref, push, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
-    // KELOLA FIREBASE CONFIG MILIKMU
     const firebaseConfig = {
       apiKey: "AIzaSyCJsY4F50qELAnHDLw-mUWMAYJt2Ua8dNw",
       authDomain: "kepuasan-1c7ad.firebaseapp.com",
@@ -255,7 +293,7 @@
     window.selectCsat = function(score) {
       selectedScore = score;
       document.getElementById('selectedCsat').value = score;
-      document.getElementById('csatError').classList.add('hidden');
+      document.getElementById('csatError').style.display = 'none';
 
       document.querySelectorAll('.csat-btn').forEach(btn => {
         if (parseInt(btn.dataset.score) === score) {
@@ -271,7 +309,7 @@
     window.submitFeedback = async function(e) {
       e.preventDefault();
       if (!selectedScore) {
-        document.getElementById('csatError').classList.remove('hidden');
+        document.getElementById('csatError').style.display = 'block';
         return;
       }
 
@@ -286,8 +324,8 @@
           created_at: new Date().toISOString()
         });
 
-        document.getElementById('feedbackForm').classList.add('hidden');
-        document.getElementById('successMsg').classList.remove('hidden');
+        document.getElementById('feedbackForm').style.display = 'none';
+        document.getElementById('successMsg').style.display = 'block';
       } catch (err) {
         alert('Gagal mengirim data: ' + err.message);
       } finally {
@@ -304,36 +342,38 @@
         btn.classList.remove('border-indigo-600', 'bg-indigo-50', 'ring-2', 'ring-indigo-200');
         btn.classList.add('border-slate-200');
       });
-      document.getElementById('feedbackForm').classList.remove('hidden');
-      document.getElementById('successMsg').classList.add('hidden');
+      document.getElementById('feedbackForm').style.display = '';
+      document.getElementById('successMsg').style.display = 'none';
     };
 
     window.switchTab = function(tab) {
-      // Guard: kalau belum login dan coba akses admin, tampilkan modal login
       if (tab === 'admin' && !isAdminLoggedIn) {
         openAdminLogin();
         return;
       }
 
-      const formBtn = document.getElementById('tabForm');
-      const adminBtn = document.getElementById('tabAdmin');
       const surveyView = document.getElementById('surveyView');
-      const adminView = document.getElementById('adminView');
+      const adminView  = document.getElementById('adminView');
+      const tabForm    = document.getElementById('tabForm');
+      const tabAdmin   = document.getElementById('tabAdmin');
+
+      const activeStyle   = "padding:0.375rem 1rem;border-radius:9999px;font-size:0.875rem;font-weight:500;border:none;cursor:pointer;background:#4f46e5;color:#fff;";
+      const inactiveStyle = "padding:0.375rem 1rem;border-radius:9999px;font-size:0.875rem;font-weight:500;border:none;cursor:pointer;background:#f1f5f9;color:#475569;";
 
       if (tab === 'form') {
-        surveyView.classList.remove('hidden');
-        adminView.classList.add('hidden');
-        formBtn.className = "px-4 py-1.5 rounded-full text-sm font-medium bg-indigo-600 text-white transition";
-        adminBtn.className = "hidden px-4 py-1.5 rounded-full text-sm font-medium bg-slate-100 text-slate-600 hover:bg-slate-200 transition";
+        surveyView.style.display = '';
+        adminView.style.display  = 'none';
+        tabForm.style.cssText  = activeStyle;
+        tabAdmin.style.cssText = inactiveStyle;
       } else {
-        surveyView.classList.add('hidden');
-        adminView.classList.remove('hidden');
-        adminBtn.className = "px-4 py-1.5 rounded-full text-sm font-medium bg-indigo-600 text-white transition";
-        formBtn.className = "px-4 py-1.5 rounded-full text-sm font-medium bg-slate-100 text-slate-600 hover:bg-slate-200 transition";
+        surveyView.style.display = 'none';
+        adminView.style.display  = '';
+        tabAdmin.style.cssText = activeStyle;
+        tabForm.style.cssText  = inactiveStyle;
       }
     };
 
-    // Realtime Listener Data dari Firebase Realtime Database
+    // Realtime Listener
     onValue(feedbacksRef, (snapshot) => {
       const rawData = snapshot.val();
       const data = [];
@@ -344,10 +384,8 @@
         });
       }
 
-      // Sort data terbaru di paling atas
       data.reverse();
 
-      // Update KPIs
       document.getElementById('statTotal').innerText = data.length;
       if (data.length > 0) {
         const sum = data.reduce((acc, curr) => acc + (curr.score || 0), 0);
@@ -356,8 +394,7 @@
         document.getElementById('statAvg').innerText = '0.0';
       }
 
-      // Update Tabel
-      const tbody = document.getElementById('historyTable');
+      const tbody  = document.getElementById('historyTable');
       tbody.innerHTML = '';
       const emojis = ['', '😡', '🙁', '😐', '🙂', '😍'];
 
@@ -372,7 +409,6 @@
         tbody.appendChild(tr);
       });
 
-      // Update Chart
       const counts = [0, 0, 0, 0, 0];
       data.forEach(item => {
         if (item.score >= 1 && item.score <= 5) counts[item.score - 1]++;
